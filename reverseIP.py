@@ -67,7 +67,7 @@ def bing_search(query, key):
 
 def mal_validation(raw_domains):
     for k in raw_domains:
-        if not (re.match('^[a-zA-Z0-9.-]*$', k)):
+        if not (re.match('^[a-zA-Z0-9:.-]*$', k)):
             print "Something's gone wrong!!!"
             exit(1)
 
