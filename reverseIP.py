@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'MaYaSeVeN'
-__version__ = 'reverseIP version 0.1 ( http://mayaseven.com )'
+__version__ = 'reverseIP version 0.2 ( http://mayaseven.com )'
 
 import urllib
 import urllib2
@@ -15,15 +15,16 @@ import socket
 def main():
     print "\n" + __version__
 
-    usage = "Usage: python " + sys.argv[0] + " -k [Bing API Key] [IP_1] [IP_2] [IP_3] [IP_N]\nUsage: python " + \
+    usage = "Usage: python " + sys.argv[
+        0] + " -k [Bing API Key] [IP_1] [IP_2] [IP_N] [Domain_1] [Domain_2] [Domain_N]\nUsage: python " + \
             sys.argv[
                 0] + " -k [Bing API Key] -l [list file of IP address]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option("-k", "--key", dest="key", help="Bing API key")
     parser.add_option("-l", "--list", dest="file", metavar="FILE", help="list file of IP address")
-    parser.add_option("-r", "--recheck", action="store_true",
-                      help="set this option to recheck is that the domain is in IP address",
-                      default=False)
+    parser.add_option("-d", "--disable", action="store_false",
+                      help="set this option to disable to recheck is that the domain is in IP address",
+                      default=True)
     (options, args) = parser.parse_args()
 
     if not options.key or (not options.file and len(args) == 0):
@@ -36,7 +37,7 @@ you need to..
         exit(1)
 
     key = options.key
-    recheck = options.recheck
+    recheck = options.disable
     if not options.file:
         for ip in args:
             reverse_ip(ip, key, recheck)
@@ -61,12 +62,17 @@ def file_check(filename, key, recheck):
 def reverse_ip(ip, key, recheck):
     raw_domains_temp = []
     domains = []
+    name = ""
     if not re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", ip):
-        print "[-] Wrong IP address."
-        exit(1)
+        try:
+            name = ip
+            ip = socket.gethostbyname(ip)
+        except socket.gaierror:
+            print "[-] unable to get address for " + ip
+            return
 
     query = "IP:" + ip
-    print "\n[*] Host: " + ip
+    print "\n[*] Host: " + ip + " " + name
     count = 0
     while 1:
         raw_domains = bing_call_api(query, key, count)
