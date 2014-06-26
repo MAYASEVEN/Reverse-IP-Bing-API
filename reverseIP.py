@@ -143,7 +143,7 @@ def check_domain_name_in_scope(raw_domains, ip):
         else:
             continue
         if not (re.match('^[a-zA-Z0-9:.-]*$', l)):
-            print "[!]Can not recheck domain " + l.encode('utf8') + " please check it by hand."
+            print "[!] Can not recheck domain " + l.encode('utf8') + " please check it by hand."
             continue
         ipc = socket.gethostbyname(l)
         if ipc == ip:
