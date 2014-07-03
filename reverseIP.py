@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Nop Phoomthaisong (aka @MaYaSeVeN)'
-__version__ = 'reverseIP version 0.3 ( http://mayaseven.com )'
+__version__ = 'reverseIP version 1.0 ( http://mayaseven.com )'
 
 import urllib
 import urllib2
@@ -43,6 +43,7 @@ you need to..
     reverseIP = RevereIP(args, key, recheck, file)
     reverseIP.run()
 
+
 def stdout(log):
     print log
 
@@ -58,12 +59,15 @@ class RevereIP:
         self.log = stdout
         self.recheck = recheck
         self.file = file
+        self.http = "http://"
+        self.https = "https://"
 
     def run(self):
 
         if self.file:
             self.ips_or_domains = self.file_opener()
         while self.ips_or_domains:
+            self.domain_numbers = 0
             ip_or_domain = self.ips_or_domains.pop()
             self.reverse_ip(ip_or_domain)
             self.log("[*] You got " + str(self.domain_numbers) + " domains to hack.")
@@ -107,8 +111,8 @@ class RevereIP:
                 self.check_domain_name_in_ip(raw_domains, ip)
             else:
                 for l in raw_domains:
-                    if l not in self.domains:
-                        self.log("[+] " + l.encode('utf8'))
+                    if l[1] not in self.domains:
+                        self.log("[+] " + ''.join(l).encode('utf8'))
                         self.domains.append(l)
                 self.final_result.update({ip: self.domains})
                 self.domain_numbers = len(self.domains)
@@ -150,7 +154,7 @@ class RevereIP:
     2.choose free plan 5,000 Transactions/month -> https://datamarket.azure.com/dataset/bing/search
             """)
                 exit(1)
-            self.log("[-] Something's gone wrong!!")
+            self.log("[-] Connection problem!!, Can not connect to Bing API")
             exit(1)
 
         response_data = response.read()
@@ -160,29 +164,43 @@ class RevereIP:
             return -1
 
         for i in range(len(result_list['d']['results'])):
+            protocol_domain_port = []
             domain = result_list['d']['results'][i]['DisplayUrl']
+            if self.https in domain:
+                protocol_domain_port.append("https://")
+                port = ':443'
+            else:
+                protocol_domain_port.append("http://")
+                port = ':80'
             domain = domain.replace("http://", "").replace("https://", "")
             rest = domain.split('/', 1)[0]
-            rest = rest.split(':', 1)[0]
-            domains.append(rest)
-
-        raw_domains = list(set(domains))
+            if ':' in rest:
+                port = rest.split(':', 1)[1]
+                rest = rest.split(':', 1)[0]
+                port = ':' + port
+            protocol_domain_port.append(rest)
+            protocol_domain_port.append(port)
+            domains.append(protocol_domain_port)
+        raw_domains = list()
+        map(lambda x: not x in raw_domains and raw_domains.append(x), domains)
         return raw_domains
 
     def check_domain_name_in_ip(self, raw_domains, ip):
         for l in raw_domains:
-            if l not in self.domains:
-                self.domains.append(l)
-            else:
+            if l[1] in self.domains:
                 continue
-            if not (re.match('^[a-zA-Z0-9:.-]*$', l)):
-                self.log("[!] Can not recheck domain " + l.encode('utf8') + " please recheck it by hand.")
+            try:
+                ipc = socket.gethostbyname(l[1].encode("idna"))
+            except:
+                self.log("[!] " + ''.join(l).encode(
+                    'utf8') + " Cannot recheck bacause of hostname encoded, Please recheck it by hand.")
                 continue
-            ipc = socket.gethostbyname(l)
             if ipc == ip:
-                self.log("[+] " + l.encode('utf8'))
+                self.log("[+] " + ''.join(l).encode('utf8'))
             else:
-                self.log("[!] " + l.encode('utf8') + " is on the other IP address, please recheck it by hand.")
+                self.log("[!] " + ''.join(l).encode('utf8') + " is on the other IP address, please recheck it by hand.")
+                continue
+            self.domains.append(l)
         self.final_result.update({ip: self.domains})
         self.domain_numbers = len(self.domains)
 
