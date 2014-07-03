@@ -154,7 +154,7 @@ class RevereIP:
     2.choose free plan 5,000 Transactions/month -> https://datamarket.azure.com/dataset/bing/search
             """)
                 exit(1)
-            self.log("[-] Connection problem!!, Can not connect to Bing API")
+            self.log("[-] Connection problem!!, Cannot connect to Bing API")
             exit(1)
 
         response_data = response.read()
